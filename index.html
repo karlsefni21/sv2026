@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For you ❤️</title>
+    
+    <style>
+        /* =========================================
+           ESTILOS GENERALES (CSS)
+           ========================================= */
+        body {
+            margin: 0; font-family: 'Arial', sans-serif; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; background-color: #000;
+            user-select: none; -webkit-user-select: none;
+        }
+
+        /* --- PANTALLAS (Intro, Quiz, Login) --- */
+        .overlay-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(252, 228, 236, 0); 
+            z-index: 999999;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+            transition: opacity 1s ease-in-out; 
+            pointer-events: auto; 
+        }
+
+        .card-box {
+            background: white; padding: 25px; border-radius: 20px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 280px; max-width: 90%;
+            opacity: 1 !important; 
+        }
+
+        .card-box h1, .card-box h2 { color: #d81b60; margin-top: 0; margin-bottom: 15px; }
+        .card-box p { color: #555; margin-bottom: 20px; line-height: 1.4; }
+
+        .btn-primary {
+            background-color: #d81b60; color: white; border: none;
+            padding: 10px 25px; border-radius: 50px; font-weight: bold; cursor: pointer;
+            margin: 5px; transition: transform 0.2s;
+        }
+        .btn-primary:active { transform: scale(0.95); }
+        .btn-secondary {
+            background-color: #ccc; color: #333; border: none;
+            padding: 10px 25px; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 5px;
+        }
+        .card-box input {
+            padding: 10px; margin-bottom: 15px; width: 80%;
+            border: 2px solid #fce4ec; border-radius: 10px;
+            text-align: center; font-size: 1.2rem; outline: none; letter-spacing: 2px;
+        }
+        
+        .options-container { display: flex; flex-direction: column; gap: 8px; }
+        .option-btn {
+            background-color: #fff; border: 2px solid #fce4ec; color: #d81b60;
+            padding: 10px; border-radius: 10px; cursor: pointer;
+            font-size: 0.95rem; transition: background-color 0.2s;
+        }
+        .option-btn:hover { background-color: #fce4ec; }
+        
+        .password-display {
+            background-color: #fce4ec; color: #d81b60;
+            font-size: 2rem; font-weight: bold; letter-spacing: 3px;
+            padding: 10px; border-radius: 10px; border: 2px dashed #d81b60;
+            margin: 10px 0 20px 0;
+        }
+
+        /* --- CONTROL DE VOLUMEN --- */
+        #volume-control {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 9999999; 
+            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(5px);
+            padding: 8px 15px; border-radius: 50px;
+            display: none; align-items: center; gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            opacity: 0.5; transition: opacity 0.3s, background 0.3s;
+        }
+        #volume-control:hover { opacity: 1; background: rgba(255, 255, 255, 0.95); }
+        #volume-slider { -webkit-appearance: none; width: 100px; height: 5px; background: #999; border-radius: 5px; outline: none; }
+        #volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 15px; height: 15px; border-radius: 50%; background: #d81b60; cursor: pointer; }
+
+        /* --- VIDEO DE FONDO --- */
+        #intro-video {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 5; 
+            filter: blur(8px) brightness(0.3); 
+            transform: scale(1.1); 
+            transition: opacity 2s ease-in-out;
+        }
+
+        /* --- CAJA CENTRAL (El Regalo Final) --- */
+        .container {
+            position: relative; 
+            z-index: 10;
+            background-color: rgba(254, 221, 251, 0.6); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 15px; width: 260px; min-height: 260px;
+            border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            
+            /* Estado base en CSS (se usa cuando limpiamos el JS) */
+            opacity: 0.2; 
+            transition: opacity 0.5s ease, transform 0.3s ease;
+        }
+        
+        /* ESTO ES LO QUE NO FUNCIONABA ANTES Y AHORA SÍ: */
+        .container:hover { opacity: 1; transform: scale(1.02); }
+
+        img#mainImage { 
+            width: 120px; height: auto; border-radius: 10px; margin-bottom: 10px; 
+            pointer-events: none;
+        }
+
+        img#mainImage2 { 
+            width: 120px; height: auto; border-radius: 10px; margin-top: 10px;
+            pointer-events: none;
+        }
+
+        
+        h1 { 
+            color: #d81b60; font-size: 1.4rem; margin-bottom: 15px; 
+            line-height: 1.2; text-shadow: 0 1px 2px rgba(255,255,255,0.8); 
+        }
+        .btn-group {
+            width: 100%; height: 40px; 
+            display: flex; justify-content: center; gap: 10px; 
+        }
+        .btn-group button {
+            padding: 8px 20px; font-size: 0.9rem; border: none;
+            border-radius: 50px; cursor: pointer; font-weight: bold; color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #yesBtn { background-color: #4CAF50; z-index: 20; }
+        #noBtn { background-color: #f44336; z-index: 10; transition: 0.1s; }
+
+        /* --- FONDO SLIDER --- */
+        #background-slider {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none;
+        }
+        .bg-slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; 
+            transition: all 0.8s ease-in-out;
+            opacity: 0;
+            filter: blur(0px) brightness(1); 
+            transform: scale(1.0);
+        }
+        .bg-slide.active { opacity: 1; }
+        .container:hover ~ #background-slider .bg-slide {
+            filter: blur(6px) brightness(0.7);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
+    <video id="intro-video" autoplay muted loop playsinline onloadeddata="this.playbackRate = 0.5;">
+        <source src="videos/lavender.mp4" type="video/mp4">
+    </video>
+
+    <audio id="musicaQuiz" loop>
+        <source src="music/instrumental.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="musicaFinal" loop>
+        <source src="music/main.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="volume-control">
+        <span style="font-size: 1.2rem;">🎶</span>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.05">
+    </div>
+
+    <div id="screen-intro" class="overlay-screen">
+        <div class="card-box">
+            <h1>💌 Hello my darling</h1>
+            <p>If you wanna continue, you have to get the password.</p>
+            <p>I prepared a quick test for you, u better get all of em good or i will boom you.</p>
+            <div class="btn-row">
+                <button onclick="startQuiz()" class="btn-primary">Start test</button>
+                <button onclick="alert('Start it if you love me Maria.')" class="btn-secondary">I don't want to...</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-quiz" class="overlay-screen" style="display: none;">
+        <div class="card-box">
+            <h2 id="quiz-header" style="color:#d81b60">Question 1/5</h2>
+            <p id="quiz-question" style="font-size: 1.1rem; margin: 20px 0;">...</p>
+            <div id="quiz-options" class="options-container"></div>
+            <p id="quizError" style="color:red; display:none; margin-top:10px;"><img id="mainImage2" src="https://media1.tenor.com/m/-legwEzkXG0AAAAd/angry-cat.gif" alt="GatoEnfadao"></p>
+        </div>
+    </div>
+
+    <div id="screen-success" class="overlay-screen" style="display: none;">
+        <div class="card-box">
+            <h1>🎉 Good job! 🎉</h1>
+            <p>Here's the password to continue 💕:</p>
+            <div class="password-display">0624</div>
+            <button onclick="goToLogin()" class="btn-primary">Unlock 🔓</button>
+        </div>
+    </div>
+
+    <div id="screen-login" class="overlay-screen" style="display: none;">
+        <div class="card-box">
+            <h2>🔐 Password:</h2>
+            <input type="password" id="passwordInput" placeholder="">
+            <br>
+            <button onclick="checkPassword()" class="btn-primary">Continue</button>
+            <p id="loginError" style="color:red; display:none; margin-top:10px;">Incorrecto</p>
+        </div>
+    </div>
+
+    <div class="container" id="final-gift" style="display: none; opacity: 0;">
+        <div class="tenor-gif-embed">
+            <img id="mainImage" src="https://media1.tenor.com/m/rQb7vKIfX1UAAAAd/sad-sad-cat.gif" alt="Gato">
+        </div>
+        
+        <h1 id="questionTitle">Will you be my Valentine?</h1>
+        
+        <div class="btn-group">
+            <button id="yesBtn" onclick="nextPage()">Yes</button>
+            <button id="noBtn" onmouseover="moveButton()" onclick="moveButton()">No</button>
+        </div>
+    </div>
+
+    <div id="background-slider"></div>
+
+    <script>
+        const LA_CLAVE_SECRETA = "0624"; 
+        
+        // --- PREGUNTAS ---
+        const questions = [
+            { question: "In which month, was our first discord text?", answers: ["April", "May", "June", "February"], correct: 1 },
+            { question: "Which month did we start dating?", answers: ["July", "May", "June", "August"], correct: 2 },
+            { question: "What's the name of the flower that made us meet?", answers: ["Rainbow Rose", "Glaze Lily", "Romaritime Flower", "Bombaboom"], correct: 0 },
+            { question: "In what region did we meet for the first time?", answers: ["Fontaine", "Inazuma", "Sumeru", "Liyue"], correct: 1 },
+            { question: "How many cats does Javi have?", answers: ["7", "5", "6", "8"], correct: 0 },
+            { question: "For how many months have we been dating?", answers: ["8 months", "22 months", "16 months", "20 months"], correct: 3 },
+            { question: "Think carefully for this one.", answers: ["Seriouslay?!", "Palang", "Elpipay", "Olang"], correct: 2 },
+            { question: "What's the tittle of our song?", answers: ["Someone noticed", "It's not noticed", "Not noticed", "No one noticed"], correct: 3 },
+            { question: "Where was our first Genshin date?", answers: ["Fontaine", "Mondstadt", "Inazuma", "Liyue"], correct: 1 },
+            { question: "Did you like this test?", answers: ["Nuh", "I like elpipay more", "MHMMM", "A little bit"], correct: 1 },
+        ];
+
+        // --- MÚSICA Y VOLUMEN ---
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeControl = document.getElementById('volume-control');
+        const audioQuiz = document.getElementById('musicaQuiz');
+        const audioFinal = document.getElementById('musicaFinal');
+
+        // Controlar el volumen con el slider
+        volumeSlider.addEventListener('input', function() {
+            const vol = this.value;
+            if(audioQuiz) audioQuiz.volume = vol;
+            if(audioFinal) audioFinal.volume = vol;
+        });
+
+        function playMusic(id) {
+            const audio = document.getElementById(id);
+            if(audio) {
+                audio.volume = volumeSlider.value; 
+                audio.play().catch(e => console.log("Error reproduciendo audio: " + id, e));
+            }
+        }
+        
+        function stopMusic(id) {
+            const audio = document.getElementById(id);
+            if(audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+
+        // --- NAVEGACIÓN ---
+        function startQuiz() {
+            document.getElementById('screen-intro').style.display = 'none';
+            document.getElementById('screen-quiz').style.display = 'flex';
+            volumeControl.style.display = "flex";
+            loadQuestion();
+            playMusic('musicaQuiz');
+        }
+
+        function finishQuiz() {
+            document.getElementById('screen-quiz').style.display = 'none';
+            document.getElementById('screen-success').style.display = 'flex';
+        }
+
+        function goToLogin() {
+            document.getElementById('screen-success').style.display = 'none';
+            document.getElementById('screen-login').style.display = 'flex';
+        }
+        
+        function unlockGift() {
+            stopMusic('musicaQuiz');
+            playMusic('musicaFinal');
+            
+            // 1. Ocultar Login (Desvanecimiento)
+            const overlay = document.getElementById('screen-login');
+            overlay.style.opacity = "0";
+            setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+
+            // 2. Ocultar Video (Lento - 2s)
+            const video = document.getElementById('intro-video');
+            if(video) {
+                video.style.opacity = "0"; 
+                setTimeout(() => { video.remove(); }, 2000);
+            }
+
+            // 3. MOSTRAR REGALO SUAVEMENTE (Arreglado)
+            const container = document.getElementById('final-gift');
+            
+            // A. Aparece en el DOM pero invisible
+            container.style.display = 'flex'; 
+            
+            // B. Ponemos transición lenta para la entrada
+            container.style.transition = "opacity 2s ease-in-out";
+            
+            setTimeout(() => {
+                // C. Iniciamos la animación hacia 0.2
+                container.style.opacity = "0.2";
+            }, 50);
+
+            // D. IMPORTANTE: Al terminar la animación, borramos el estilo inline
+            // para que el CSS (y el hover) vuelvan a mandar.
+            setTimeout(() => {
+                container.style.transition = ""; 
+                container.style.opacity = ""; 
+            }, 500);
+        }
+
+        // --- LÓGICA TEST ---
+        let currentQuestionIndex = 0;
+        function loadQuestion() {
+            const q = questions[currentQuestionIndex];
+            document.getElementById("quiz-header").innerText = `❤️ Question ${currentQuestionIndex + 1}/${questions.length}`;
+            document.getElementById("quiz-question").innerText = q.question;
+            const optionsDiv = document.getElementById("quiz-options");
+            optionsDiv.innerHTML = ""; 
+            q.answers.forEach((ans, index) => {
+                const btn = document.createElement("button");
+                btn.innerText = ans; btn.className = "option-btn";
+                btn.onclick = () => checkAnswer(index);
+                optionsDiv.appendChild(btn);
+            });
+        }
+        function checkAnswer(index) {
+            const errorMsg = document.getElementById('quizError');
+            const card = document.querySelector('#screen-quiz .card-box');
+            if (index === questions[currentQuestionIndex].correct) {
+                errorMsg.style.display = 'none';
+                currentQuestionIndex++;
+                if (currentQuestionIndex < questions.length) loadQuestion();
+                else finishQuiz();
+            } else {
+                errorMsg.style.display = 'block';
+                card.style.animation = "shake 0.3s";
+                setTimeout(() => { card.style.animation = ""; }, 300);
+            }
+        }
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value;
+            const errorMsg = document.getElementById('loginError');
+            const card = document.querySelector('#screen-login .card-box');
+            if (input === LA_CLAVE_SECRETA) unlockGift();
+            else {
+                errorMsg.style.display = 'block';
+                card.style.animation = "shake 0.3s";
+                setTimeout(() => { card.style.animation = ""; }, 300);
+            }
+        }
+
+        // --- BOTÓN NO ---
+        function moveButton() {
+            const noBtn = document.getElementById('noBtn');
+            const container = document.querySelector('.container');
+            noBtn.style.position = "absolute";
+            
+            const containerRect = container.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+            const maxWidth = containerRect.width - btnRect.width;
+            const maxHeight = containerRect.height - btnRect.height;
+            
+            const randomX = Math.floor(Math.random() * maxWidth);
+            const randomY = Math.floor(Math.random() * maxHeight);
+            
+            noBtn.style.left = randomX + "px";
+            noBtn.style.top = randomY + "px";
+        }
+
+        function nextPage() {
+            document.getElementById('mainImage').src = "https://media1.tenor.com/m/ZXBks2QSfdgAAAAd/cats-kittens.gif";
+            document.getElementById('questionTitle').innerHTML = "I love you my cute potatoeay, i hope you liked this silly thing 🥺💞";
+            document.querySelector('.btn-group').style.display = 'none';
+        }
+
+        // --- CAROUSEL ---
+        const totalImages = 27; 
+        const sliderContainer = document.getElementById('background-slider');
+        let imagesList = ["4.png"];
+        let restOfImages = [];
+        for (let i = 1; i <= totalImages; i++) {
+            if (i !== 4) restOfImages.push(i + ".png");
+        }
+        restOfImages.sort(() => Math.random() - 0.5);
+        imagesList = imagesList.concat(restOfImages);
+
+        imagesList.forEach((filename, index) => {
+            const img = document.createElement('img');
+            img.src = "img/" + filename; 
+            img.className = "bg-slide";
+            if (index === 0) img.classList.add("active");
+            sliderContainer.appendChild(img);
+        });
+
+        let bgIndex = 0;
+        function changeBackground() {
+            const bgSlides = document.getElementsByClassName("bg-slide");
+            if (bgSlides.length > 0) {
+                bgSlides[bgIndex].classList.remove("active");
+                bgIndex = (bgIndex + 1) % bgSlides.length;
+                bgSlides[bgIndex].classList.add("active");
+            }
+        }
+        if (totalImages > 1) setInterval(changeBackground, 4000);
+
+        // Seguridad
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('dragstart', event => event.preventDefault());
+        document.onkeydown = function(e) { if(e.keyCode == 123) return false; }
+    </script>
+</body>
+</html>
