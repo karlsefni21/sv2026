@@ -105,8 +105,6 @@
             display: flex; 
             flex-direction: column;
             justify-content: center; align-items: center; text-align: center;
-            
-            /* Estado base en CSS */
             opacity: 0.2; 
             transition: opacity 0.5s ease, transform 0.3s ease;
         }
@@ -158,14 +156,10 @@
             transform: scale(1.1);
         }
 
-        /* --- LLUVIA DE EMOJIS (NUEVO) --- */
+        /* --- LLUVIA DE EMOJIS --- */
         .falling-emoji {
-            position: fixed;
-            top: -50px;
-            user-select: none;
-            pointer-events: none;
-            z-index: 9999999; /* Por encima de todo */
-            animation: fall linear forwards;
+            position: fixed; top: -50px; user-select: none; pointer-events: none;
+            z-index: 9999999; animation: fall linear forwards;
         }
         @keyframes fall {
             to { transform: translateY(110vh) rotate(360deg); }
@@ -226,7 +220,7 @@
             <input type="password" id="passwordInput" placeholder="">
             <br>
             <button onclick="checkPassword()" class="btn-primary">Continue</button>
-            <p id="loginError" style="color:red; display:none; margin-top:10px;">I boom you. Try again</p>
+            <p id="loginError" style="color:red; display:none; margin-top:10px;">Incorrecto</p>
         </div>
     </div>
 
@@ -298,6 +292,9 @@
             volumeControl.style.display = "flex";
             loadQuestion();
             playMusic('musicaQuiz');
+            
+            // 🔥 TRUCO: Empezar a descargar las fotos YA
+            preloadImages();
         }
 
         function finishQuiz() {
@@ -314,21 +311,17 @@
             stopMusic('musicaQuiz');
             playMusic('musicaFinal');
             
-            // 1. Ocultar Login (Desvanecimiento)
             const overlay = document.getElementById('screen-login');
             overlay.style.opacity = "0";
             setTimeout(() => { overlay.style.display = 'none'; }, 1000);
 
-            // 2. Ocultar Video (Lento - 2s)
             const video = document.getElementById('intro-video');
             if(video) {
                 video.style.opacity = "0"; 
                 setTimeout(() => { video.remove(); }, 2000);
             }
 
-            // 3. MOSTRAR REGALO SUAVEMENTE
             const container = document.getElementById('final-gift');
-            
             container.style.display = 'flex'; 
             container.style.transition = "opacity 2s ease-in-out";
             
@@ -336,7 +329,6 @@
                 container.style.opacity = "0.2";
             }, 50);
 
-            // Limpiar estilos para que vuelva el hover
             setTimeout(() => {
                 container.style.transition = ""; 
                 container.style.opacity = ""; 
@@ -384,20 +376,16 @@
             }
         }
 
-        // --- BOTÓN NO ---
         function moveButton() {
             const noBtn = document.getElementById('noBtn');
             const container = document.querySelector('.container');
             noBtn.style.position = "absolute";
-            
             const containerRect = container.getBoundingClientRect();
             const btnRect = noBtn.getBoundingClientRect();
             const maxWidth = containerRect.width - btnRect.width;
             const maxHeight = containerRect.height - btnRect.height;
-            
             const randomX = Math.floor(Math.random() * maxWidth);
             const randomY = Math.floor(Math.random() * maxHeight);
-            
             noBtn.style.left = randomX + "px";
             noBtn.style.top = randomY + "px";
         }
@@ -406,46 +394,33 @@
             document.getElementById('mainImage').src = "https://media1.tenor.com/m/ZXBks2QSfdgAAAAd/cats-kittens.gif";
             document.getElementById('questionTitle').innerHTML = "I love you my cute potatoeay, i hope you liked this silly thing 🥺💞";
             document.querySelector('.btn-group').style.display = 'none';
-
-            // 🌧️ ACTIVAR LA LLUVIA DE EMOJIS 🌧️
-            setInterval(createHeart, 300); // Crea un corazón cada 100ms
+            setInterval(createHeart, 300); 
         }
 
-        // --- FUNCIÓN LLUVIA DE EMOJIS (NUEVA) ---
         function createHeart() {
             const heart = document.createElement('div');
-            const emojis = ["❤️", "💖", "💞", "💍", "✨", "🥰"];
+            const emojis = ["❤️", "💖", "💘", "💝", "🌹", "😻", "✨", "🥰"];
             heart.innerText = emojis[Math.floor(Math.random() * emojis.length)];
             heart.classList.add('falling-emoji');
-            
-            // Posición aleatoria en el ancho de la pantalla
             heart.style.left = Math.random() * 100 + "vw";
-            
-            // Velocidad aleatoria (entre 3s y 5s)
             heart.style.animationDuration = Math.random() * 2 + 3 + "s"; 
-            
-            // Tamaño aleatorio
             heart.style.fontSize = Math.random() * 1.5 + 1 + "rem"; 
-
             document.body.appendChild(heart);
-
-            // Eliminar el corazón después de que caiga para que no se pete el navegador
-            setTimeout(() => {
-                heart.remove();
-            }, 5000);
+            setTimeout(() => { heart.remove(); }, 5000);
         }
 
-        // --- CAROUSEL ---
+        // --- CAROUSEL (JPG) ---
         const totalImages = 43; 
         const sliderContainer = document.getElementById('background-slider');
-        let imagesList = ["4.png"];
+        let imagesList = ["4.jpg"]; // ⚠️ IMPORTANTE: AHORA .jpg
         let restOfImages = [];
         for (let i = 1; i <= totalImages; i++) {
-            if (i !== 4) restOfImages.push(i + ".png");
+            if (i !== 4) restOfImages.push(i + ".jpg"); // ⚠️ AHORA .jpg
         }
         restOfImages.sort(() => Math.random() - 0.5);
         imagesList = imagesList.concat(restOfImages);
 
+        // Generamos los HTML (pero están ocultos y cargando)
         imagesList.forEach((filename, index) => {
             const img = document.createElement('img');
             img.src = "img/" + filename; 
@@ -453,6 +428,16 @@
             if (index === 0) img.classList.add("active");
             sliderContainer.appendChild(img);
         });
+
+        // 🚀 FUNCIÓN NUEVA: PRELOADER INTELIGENTE
+        function preloadImages() {
+            // Esto fuerza al navegador a descargar todas las fotos
+            // mientras ella está distraída con el quiz.
+            imagesList.forEach(filename => {
+                const img = new Image();
+                img.src = "img/" + filename;
+            });
+        }
 
         let bgIndex = 0;
         function changeBackground() {
@@ -465,7 +450,6 @@
         }
         if (totalImages > 1) setInterval(changeBackground, 4000);
 
-        // Seguridad
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.addEventListener('dragstart', event => event.preventDefault());
         document.onkeydown = function(e) { if(e.keyCode == 123) return false; }
