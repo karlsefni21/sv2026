@@ -106,12 +106,11 @@
             flex-direction: column;
             justify-content: center; align-items: center; text-align: center;
             
-            /* Estado base en CSS (se usa cuando limpiamos el JS) */
+            /* Estado base en CSS */
             opacity: 0.2; 
             transition: opacity 0.5s ease, transform 0.3s ease;
         }
         
-        /* ESTO ES LO QUE NO FUNCIONABA ANTES Y AHORA SÍ: */
         .container:hover { opacity: 1; transform: scale(1.02); }
 
         img#mainImage { 
@@ -123,7 +122,6 @@
             width: 120px; height: auto; border-radius: 10px; margin-top: 10px;
             pointer-events: none;
         }
-
         
         h1 { 
             color: #d81b60; font-size: 1.4rem; margin-bottom: 15px; 
@@ -158,6 +156,19 @@
         .container:hover ~ #background-slider .bg-slide {
             filter: blur(6px) brightness(0.7);
             transform: scale(1.1);
+        }
+
+        /* --- LLUVIA DE EMOJIS (NUEVO) --- */
+        .falling-emoji {
+            position: fixed;
+            top: -50px;
+            user-select: none;
+            pointer-events: none;
+            z-index: 9999999; /* Por encima de todo */
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
         }
     </style>
 </head>
@@ -203,8 +214,8 @@
     <div id="screen-success" class="overlay-screen" style="display: none;">
         <div class="card-box">
             <h1>🎉 Good job! 🎉</h1>
-            <p>Here's the password to continue 💕:</p>
-            <div class="password-display">0624</div>
+            <p>The password is both of our kids names, written together, u better guess it. 💕:</p>
+            <div class="password-display">*****</div>
             <button onclick="goToLogin()" class="btn-primary">Unlock 🔓</button>
         </div>
     </div>
@@ -215,7 +226,7 @@
             <input type="password" id="passwordInput" placeholder="">
             <br>
             <button onclick="checkPassword()" class="btn-primary">Continue</button>
-            <p id="loginError" style="color:red; display:none; margin-top:10px;">Incorrecto</p>
+            <p id="loginError" style="color:red; display:none; margin-top:10px;">I boom you. Try again</p>
         </div>
     </div>
 
@@ -235,15 +246,15 @@
     <div id="background-slider"></div>
 
     <script>
-        const LA_CLAVE_SECRETA = "0624"; 
+        const LA_CLAVE_SECRETA = "aaronaisha"; 
         
         // --- PREGUNTAS ---
         const questions = [
-            { question: "In which month, was our first discord text?", answers: ["April", "May", "June", "February"], correct: 1 },
-            { question: "Which month did we start dating?", answers: ["July", "May", "June", "August"], correct: 2 },
+            { question: "In which month, was our first discord text?", answers: ["April", "May", "June", "February"], correct: 1 },  
             { question: "What's the name of the flower that made us meet?", answers: ["Rainbow Rose", "Glaze Lily", "Romaritime Flower", "Bombaboom"], correct: 0 },
-            { question: "In what region did we meet for the first time?", answers: ["Fontaine", "Inazuma", "Sumeru", "Liyue"], correct: 1 },
             { question: "How many cats does Javi have?", answers: ["7", "5", "6", "8"], correct: 0 },
+            { question: "Which month did we start dating?", answers: ["July", "May", "June", "August"], correct: 2 },
+            { question: "In what region did we meet for the first time?", answers: ["Fontaine", "Inazuma", "Sumeru", "Liyue"], correct: 1 },
             { question: "For how many months have we been dating?", answers: ["8 months", "22 months", "16 months", "20 months"], correct: 3 },
             { question: "Think carefully for this one.", answers: ["Seriouslay?!", "Palang", "Elpipay", "Olang"], correct: 2 },
             { question: "What's the tittle of our song?", answers: ["Someone noticed", "It's not noticed", "Not noticed", "No one noticed"], correct: 3 },
@@ -315,22 +326,17 @@
                 setTimeout(() => { video.remove(); }, 2000);
             }
 
-            // 3. MOSTRAR REGALO SUAVEMENTE (Arreglado)
+            // 3. MOSTRAR REGALO SUAVEMENTE
             const container = document.getElementById('final-gift');
             
-            // A. Aparece en el DOM pero invisible
             container.style.display = 'flex'; 
-            
-            // B. Ponemos transición lenta para la entrada
             container.style.transition = "opacity 2s ease-in-out";
             
             setTimeout(() => {
-                // C. Iniciamos la animación hacia 0.2
                 container.style.opacity = "0.2";
             }, 50);
 
-            // D. IMPORTANTE: Al terminar la animación, borramos el estilo inline
-            // para que el CSS (y el hover) vuelvan a mandar.
+            // Limpiar estilos para que vuelva el hover
             setTimeout(() => {
                 container.style.transition = ""; 
                 container.style.opacity = ""; 
@@ -400,10 +406,37 @@
             document.getElementById('mainImage').src = "https://media1.tenor.com/m/ZXBks2QSfdgAAAAd/cats-kittens.gif";
             document.getElementById('questionTitle').innerHTML = "I love you my cute potatoeay, i hope you liked this silly thing 🥺💞";
             document.querySelector('.btn-group').style.display = 'none';
+
+            // 🌧️ ACTIVAR LA LLUVIA DE EMOJIS 🌧️
+            setInterval(createHeart, 300); // Crea un corazón cada 100ms
+        }
+
+        // --- FUNCIÓN LLUVIA DE EMOJIS (NUEVA) ---
+        function createHeart() {
+            const heart = document.createElement('div');
+            const emojis = ["❤️", "💖", "💞", "💍", "✨", "🥰"];
+            heart.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            heart.classList.add('falling-emoji');
+            
+            // Posición aleatoria en el ancho de la pantalla
+            heart.style.left = Math.random() * 100 + "vw";
+            
+            // Velocidad aleatoria (entre 3s y 5s)
+            heart.style.animationDuration = Math.random() * 2 + 3 + "s"; 
+            
+            // Tamaño aleatorio
+            heart.style.fontSize = Math.random() * 1.5 + 1 + "rem"; 
+
+            document.body.appendChild(heart);
+
+            // Eliminar el corazón después de que caiga para que no se pete el navegador
+            setTimeout(() => {
+                heart.remove();
+            }, 5000);
         }
 
         // --- CAROUSEL ---
-        const totalImages = 27; 
+        const totalImages = 43; 
         const sliderContainer = document.getElementById('background-slider');
         let imagesList = ["4.png"];
         let restOfImages = [];
